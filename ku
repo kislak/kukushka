@@ -1,0 +1,27 @@
+DIR="$( dirname "${BASH_SOURCE[0]}" )"
+
+function prompt_command {
+  $DIR/kukushka/kuku
+}
+
+if [ $ku ]
+then
+  unset ku
+  unset PROMPT_COMMAND
+else
+  ku=true
+  PROMPT_COMMAND=prompt_command
+fi
+
+export PROMPT_COMMAND
+
+<<EOF
+if [ $ku ]
+then
+  unset ku
+  PS1="\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "
+else
+  PS1="$($DIR/kukushka/kuku)"$PS1
+  ku=100
+fi
+EOF
