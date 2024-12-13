@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
+require 'yaml'
 require 'kukushka'
-puts Kukushka.kuku
+
+puts Kukushka.kuku(ARGV)
