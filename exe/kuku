@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 require 'yaml'
 require 'kukushka'
+require 'pry'
 
-puts Kukushka.kuku(ARGV)
+if ARGV.join('') == 'on'
+  Kukushka.on!
+  exit
+end
+
+return unless Kukushka.on?
+
+res = Kukushka.kuku(ARGV)
+puts res if res

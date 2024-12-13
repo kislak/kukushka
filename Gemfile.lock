@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kukushka (0.1.1)
+    kukushka (0.1.2)
       rainbow (~> 3.0)
 
 GEM
