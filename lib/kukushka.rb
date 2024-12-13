@@ -7,6 +7,7 @@ require 'yaml'
 module Kukushka
   INIT_CTA = "TODO: kuku init source_file"
   PROVIDE_SOURCE_CTA = "TODO: provide valid source_file path"
+  DEFAULT_CIRCLE = 5
 
   def self.kuku(args)
     Kukushka.kuku(args)
@@ -42,7 +43,10 @@ module Kukushka
       FileUtils.mkdir_p(dir) unless File.exists?(dir)
       config = {
         source: source_file,
-        enabled: true
+        enabled: true,
+        counter: 0,
+        from: 0,
+        circle: DEFAULT_CIRCLE,
       }
       File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
     end
@@ -64,10 +68,36 @@ module Kukushka
     end
 
     def source
-      @source ||= YAML::load_file(CONFIG_FILE)[:source]
+      @source ||= config[:source]
     end
 
-    private
+    def counter
+      @counter ||= config[:counter]
+    end
+
+    def from
+      @from ||= config[:from]
+    end
+
+    def circle
+      @circle ||= config[:circle]
+    end
+
+    def set_counter(new_counter)
+      config.merge!(counter: new_counter)
+      File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
+    end
+
+    def set_circle(new_circle)
+      config.merge!(circle: new_circle)
+      File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
+    end
+
+    def set_from(new_from)
+      config.merge!(from: new_from)
+      File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
+    end
+
     def config
       @config ||= YAML::load_file(CONFIG_FILE)
     end
@@ -94,10 +124,28 @@ module Kukushka
       return config.enable if command == 'on'
       return config.disable if command == 'off'
 
+      if command == 'counter'
+        return config.set_counter(0) if param1.nil?
+        return config.set_counter(nil) if param1 == 'no' || param1 == 'off' || param1 == 'nil'
+        return config.set_counter(param1.to_i)
+      end
+
+      if command == 'from'
+        config.set_from(0) if param1.nil?
+        config.set_from(param1.to_i)
+        config.set_counter(config.from)
+      end
+
+      if command == 'circle'
+        config.set_circle(DEFAULT_CIRCLE) if param1.nil?
+        config.set_circle(param1.to_i)
+        config.set_counter(config.from)
+      end
+
       return config.cleanup if command == 'cleanup'
       # return show if command == 'show'
       return sample if command == 'sample'
-      return punchline if command.nil?
+      return punchline
     end
 
     private
@@ -115,7 +163,26 @@ module Kukushka
     # end
 
     def sample
-      @sample ||= File.readlines(config.source, chomp: true).sample
+      if config.counter
+        config.set_counter(config.counter + 1)
+        config.set_counter(0) if config.counter > lines.size
+
+        if config.counter < config.from
+          config.set_counter(config.from)
+        end
+
+        if config.counter >= config.from + config.circle - 1
+          config.set_counter(config.from)
+        end
+
+        return "#{config.counter}. #{lines[config.counter]}"
+      end
+
+      lines.sample
+    end
+
+    def lines
+      @lines ||= File.readlines(config.source, chomp: true)
     end
 
     def punchline
