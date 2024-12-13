@@ -5,7 +5,6 @@ require 'pry'
 
 if ARGV.join('') == 'on'
   Kukushka.on!
-  exit
 end
 
 return unless Kukushka.on?

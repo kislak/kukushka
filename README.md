@@ -36,3 +36,13 @@ function precmd() {
 }
 ```
 
+
+
+```
+mkdir tmp/sk
+cd tmp/sk
+bundle init
+
+gem 'pry'
+gem 'kukushka', path: '/Users/Siarhei/laboratory/kukushka'
+```

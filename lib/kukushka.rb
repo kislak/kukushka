@@ -20,12 +20,12 @@ module Kukushka
     Config.new.enable
   end
 
-
   class Config
     CONFIG_FILE = File.dirname(__FILE__) + '/../tmp/config/kuku.yaml'
     CONFIG_DIR = File.dirname(CONFIG_FILE)
 
     def on?
+      return true unless exists?
       exists? && config[:enabled]
     end
 
@@ -33,8 +33,8 @@ module Kukushka
       File.exists?(CONFIG_DIR)
     end
 
-    def init
-      source_file = param1
+    def init(source_file)
+      source_file ||= File.dirname(__FILE__) + '/../spec/fixtures/pl_001.txt'
       return INIT_CTA if source_file.nil?
       return PROVIDE_SOURCE_CTA unless File.exist?(source_file)
 
@@ -87,7 +87,7 @@ module Kukushka
     attr_reader :command, :param1, :config
 
     def kuku
-      config.init if command == 'init'
+      config.init(param1) if command == 'init'
 
       return INIT_CTA unless config.exists?
 
