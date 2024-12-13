@@ -175,7 +175,7 @@ module Kukushka
           config.set_counter(config.from)
         end
 
-        return "#{config.counter}. #{lines[config.counter]}"
+        return "#{lines[config.counter]} #{config.counter}/#{lines.size}"
       end
 
       lines.sample
