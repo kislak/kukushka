@@ -5,7 +5,7 @@ require 'rainbow'
 require 'yaml'
 
 module Kukushka
-  EXAMPLE_SOURCE ||= File.dirname(__FILE__) + '/../spec/fixtures/pl_001.txt'
+  EXAMPLE_SOURCE ||= File.dirname(__FILE__) + '/../fixtures/pl_001.txt'
   DEFULAT_LINES = File.readlines(EXAMPLE_SOURCE, chomp: true)
 
   def self.kuku(redis)
@@ -54,6 +54,8 @@ module Kukushka
           set_counter(from)
         end
 
+
+        return lines[counter] if redis.get(:output) == 'simple'
         return "#{lines[counter]} #{counter} [#{from}-#{to}/#{lines.size - 1}]"
       end
 

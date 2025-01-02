@@ -22,6 +22,10 @@ Commander.configure do
     c.description = 'Show next sample'
     c.action do |args, options|
       next unless redis.get('enabled') == 'true'
+      annoying = redis.get(:annoying).to_i
+      if annoying > 0
+        next if 1.0/annoying < rand
+      end
 
       res = Kukushka.kuku(redis)
       puts res if res
@@ -34,6 +38,23 @@ Commander.configure do
     c.action do |args, options|
       # res = Kukushka.kuku(ARGV)
       # puts res if res
+    end
+  end
+
+  command :annoying do |c|
+    c.syntax = 'kuku annoying [int]'
+    c.description = 'Sets annoying factor'
+    c.action do |args, options|
+      redis.set(:annoying, args.first)
+      # puts res if res
+    end
+  end
+
+  command :output do |c|
+    c.syntax = 'kuku output simple'
+    c.description = 'Sets output format'
+    c.action do |args, options|
+      redis.set(:output, args.first)
     end
   end
 
