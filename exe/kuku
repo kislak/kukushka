@@ -2,12 +2,63 @@
 require 'yaml'
 require 'kukushka'
 require 'pry'
+require 'commander'
+require 'redis'
+require 'redis-namespace'
+require 'json'
 
-if ARGV.join('') == 'on'
-  Kukushka.on!
+
+redis_connection = Redis.new
+redis = Redis::Namespace.new(:kukushka, redis: redis_connection)
+
+Commander.configure do
+  program :name, 'kuku'
+  program :version, '1.0.0'
+  program :description, 'learn list'
+  default_command :sample
+
+  command :sample do |c|
+    c.syntax = 'kuku sample'
+    c.description = 'Show next sample'
+    c.action do |args, options|
+      next unless redis.get('enabled') == 'true'
+
+      res = Kukushka.kuku(redis)
+      puts res if res
+    end
+  end
+
+  command :init do |c|
+    c.syntax = 'kuku init'
+    c.description = 'Default initiation'
+    c.action do |args, options|
+      # res = Kukushka.kuku(ARGV)
+      # puts res if res
+    end
+  end
+
+  command :source do |c|
+    c.syntax = 'kuku source file_path'
+    c.description = 'Add new source'
+    c.action do |args, options|
+      lines = File.readlines(args.first, chomp: true)
+      redis.set(:lines, lines.to_json)
+    end
+  end
+
+  command :on do |c|
+    c.syntax = 'kuku on'
+    c.description = 'Disable'
+    c.action do |args, options|
+      redis.set('enabled', true)
+    end
+  end
+
+  command :off do |c|
+    c.syntax = 'kuku off'
+    c.description = 'disable'
+    c.action do |args, options|
+      redis.set('enabled', false)
+    end
+  end
 end
-
-return unless Kukushka.on?
-
-res = Kukushka.kuku(ARGV)
-puts res if res

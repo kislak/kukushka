@@ -27,6 +27,9 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "rainbow", '~> 3.0'
+  spec.add_dependency "commander"
+  spec.add_dependency "redis"
+  spec.add_dependency "redis-namespace"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

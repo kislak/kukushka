@@ -46,3 +46,12 @@ bundle init
 gem 'pry'
 gem 'kukushka', path: '/Users/Siarhei/laboratory/kukushka'
 ```
+
+```bash
+gem build kukushka.gemspec
+gem push kukushka-0.x.y.gem
+```
+
+dependencies
+https://github.com/redis/redis-rb
+https://github.com/commander-rb/commander
