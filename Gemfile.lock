@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kukushka (0.1.10)
+    kukushka (0.1.11)
       commander (~> 4.4)
       rainbow (~> 3.0)
       redis (~> 5.3)
