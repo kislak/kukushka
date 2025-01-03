@@ -7,13 +7,14 @@ require 'yaml'
 module Kukushka
   EXAMPLE_SOURCE ||= File.dirname(__FILE__) + '/../fixtures/pl_001.txt'
   DEFULAT_LINES = File.readlines(EXAMPLE_SOURCE, chomp: true)
+  CONFIG_ENTRIES = %i(source enabled annoying format counter from circle)
 
   def self.kuku(redis)
     Kukushka.kuku(redis)
   end
 
-  def self.store(redis)
-    Config.store(redis)
+  def self.store(config_entry)
+    Config.store(config_entry)
   end
 
   def self.restore(redis)
@@ -32,8 +33,8 @@ module Kukushka
     dir = File.dirname(CONFIG_FILE)
     FileUtils.mkdir_p(dir) unless File.exist?(dir)
 
-    def self.store(redis)
-      new.store(redis)
+    def self.store(config_entry)
+      new.store(config_entry)
     end
 
     def self.restore(redis)
@@ -54,18 +55,17 @@ module Kukushka
         from: 0,
         circle: 0,
         annoying: 0,
-        output: nil,
+        format: nil,
       }
 
       File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
     end
 
-    def store(redis)
-      config = {}
-      %i(source enabled annoying output counter from circle).each do |key|
-        config[key] = redis.get(key)
-      end
+    def store(config_entry)
+      raise 'unknown config' if (config_entry.keys - CONFIG_ENTRIES).any?
 
+      config = YAML::load_file(CONFIG_FILE)
+      config.merge!(config_entry)
       File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
     end
 
@@ -125,7 +125,7 @@ module Kukushka
         end
 
 
-        return lines[counter] if redis.get(:output) == 'simple'
+        return lines[counter] if redis.get(:format) == 'simple'
         return "#{lines[counter]} #{counter} [#{from}-#{to}/#{lines.size - 1}]"
       end
 

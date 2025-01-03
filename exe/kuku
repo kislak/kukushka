@@ -39,6 +39,7 @@ Commander.configure do
     c.syntax = 'kuku init'
     c.description = 'Default initiation'
     c.action do |args, options|
+      Kukushka.reset(redis)
       # res = Kukushka.kuku(ARGV)
       # puts res if res
     end
@@ -48,18 +49,17 @@ Commander.configure do
     c.syntax = 'kuku annoying [int]'
     c.description = 'Sets annoying factor'
     c.action do |args, options|
-      redis.set(:annoying, args.first)
-      Kukushka.store(redis)
-      # puts res if res
+      Kukushka.store({ annoying: args.first })
+      Kukushka.restore(redis)
     end
   end
 
   command :format do |c|
     c.syntax = 'kuku format simple'
-    c.description = 'Output format'
+    c.description = 'format output'
     c.action do |args, options|
-      redis.set(:format, args.first)
-      Kukushka.store(redis)
+      Kukushka.store({ format: args.first })
+      Kukushka.restore(redis)
     end
   end
 
@@ -67,10 +67,10 @@ Commander.configure do
     c.syntax = 'kuku source file_path'
     c.description = 'Add new source'
     c.action do |args, options|
-      lines = File.readlines(args.first, chomp: true)
-      redis.set(:source, args.first)
-      redis.set(:lines, lines.to_json)
-      Kukushka.store(redis)
+      # lines = File.readlines(args.first, chomp: true)
+      # redis.set(:lines, lines.to_json)
+      Kukushka.store({source: args.first})
+      Kukushka.restore(redis)
     end
   end
 
@@ -78,7 +78,8 @@ Commander.configure do
     c.syntax = 'kuku on'
     # c.description = 'enable'
     c.action do |args, options|
-      redis.set('enabled', true)
+      Kukushka.store({enabled: true})
+      Kukushka.restore(redis)
     end
   end
 
@@ -86,7 +87,8 @@ Commander.configure do
     c.syntax = 'kuku off'
     # c.description = 'disable'
     c.action do |args, options|
-      redis.set('enabled', false)
+      Kukushka.store({enabled: false})
+      Kukushka.restore(redis)
     end
   end
 
@@ -94,7 +96,7 @@ Commander.configure do
     c.syntax = 'kuku status'
     c.description = 'disable'
     c.action do |args, options|
-      %i(source enabled annoying output counter from circle).each do |key|
+      %i(source enabled format counter from circle annoying).each do |key|
         puts "#{key}: #{redis.get(key.to_s)}"
       end
     end
