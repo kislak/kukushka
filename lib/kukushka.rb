@@ -12,6 +12,76 @@ module Kukushka
     Kukushka.kuku(redis)
   end
 
+  def self.store(redis)
+    Config.store(redis)
+  end
+
+  def self.restore(redis)
+    Config.restore(redis)
+  end
+
+  def self.reset(redis)
+    Config.reset(redis)
+  end
+
+  class Config
+    CONFIG_FILE = File.dirname(__FILE__) + '/../tmp/config/kuku.yaml'
+    SOURCE = File.dirname(__FILE__) + '/../spec/fixtures/pl_001.txt'
+
+    CONFIG_DIR = File.dirname(CONFIG_FILE)
+    dir = File.dirname(CONFIG_FILE)
+    FileUtils.mkdir_p(dir) unless File.exist?(dir)
+
+    def self.store(redis)
+      new.store(redis)
+    end
+
+    def self.restore(redis)
+      new.restore(redis)
+    end
+
+    def self.reset(redis)
+      config = new
+      config.reset
+      config.restore(redis)
+    end
+
+    def reset
+      config = {
+        source: SOURCE,
+        enabled: true,
+        counter: 0,
+        from: 0,
+        circle: 0,
+        annoying: 0,
+        output: nil,
+      }
+
+      File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
+    end
+
+    def store(redis)
+      config = {}
+      %i(source enabled annoying output counter from circle).each do |key|
+        config[key] = redis.get(key)
+      end
+
+      File.open(CONFIG_FILE, 'w') {|f| f.write config.to_yaml }
+    end
+
+    def restore(redis)
+      config.each do |key, value|
+        redis.set(key, value)
+      end
+    end
+
+    private
+
+    def config
+      @config ||= YAML::load_file(CONFIG_FILE)
+    end
+  end
+
   class Kukushka
     def self.kuku(redis)
       new(redis).kuku

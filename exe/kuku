@@ -7,7 +7,6 @@ require 'redis'
 require 'redis-namespace'
 require 'json'
 
-
 redis_connection = Redis.new
 redis = Redis::Namespace.new(:kukushka, redis: redis_connection)
 
@@ -21,6 +20,10 @@ Commander.configure do
     c.syntax = 'kuku sample'
     c.description = 'Show next sample'
     c.action do |args, options|
+      unless redis.get('source')
+        Kukushka.restore(redis)
+      end
+
       next unless redis.get('enabled') == 'true'
       annoying = redis.get(:annoying).to_i
       if annoying > 0
@@ -46,15 +49,17 @@ Commander.configure do
     c.description = 'Sets annoying factor'
     c.action do |args, options|
       redis.set(:annoying, args.first)
+      Kukushka.store(redis)
       # puts res if res
     end
   end
 
-  command :output do |c|
-    c.syntax = 'kuku output simple'
-    c.description = 'Sets output format'
+  command :format do |c|
+    c.syntax = 'kuku format simple'
+    c.description = 'Output format'
     c.action do |args, options|
-      redis.set(:output, args.first)
+      redis.set(:format, args.first)
+      Kukushka.store(redis)
     end
   end
 
@@ -63,13 +68,15 @@ Commander.configure do
     c.description = 'Add new source'
     c.action do |args, options|
       lines = File.readlines(args.first, chomp: true)
+      redis.set(:source, args.first)
       redis.set(:lines, lines.to_json)
+      Kukushka.store(redis)
     end
   end
 
   command :on do |c|
     c.syntax = 'kuku on'
-    c.description = 'Disable'
+    # c.description = 'enable'
     c.action do |args, options|
       redis.set('enabled', true)
     end
@@ -77,9 +84,27 @@ Commander.configure do
 
   command :off do |c|
     c.syntax = 'kuku off'
-    c.description = 'disable'
+    # c.description = 'disable'
     c.action do |args, options|
       redis.set('enabled', false)
+    end
+  end
+
+  command :status do |c|
+    c.syntax = 'kuku status'
+    c.description = 'disable'
+    c.action do |args, options|
+      %i(source enabled annoying output counter from circle).each do |key|
+        puts "#{key}: #{redis.get(key.to_s)}"
+      end
+    end
+  end
+
+  command :reset do |c|
+    c.syntax = 'kuku reset'
+    c.description = 'reset config'
+    c.action do |args, options|
+      Kukushka.reset(redis)
     end
   end
 end
