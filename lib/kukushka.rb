@@ -73,6 +73,11 @@ module Kukushka
       config.each do |key, value|
         redis.set(key, value)
       end
+
+      if @source = redis.get(:source)
+        value = File.readlines(@source, chomp: true)
+        redis.set(:lines, value)
+      end
     end
 
     private
